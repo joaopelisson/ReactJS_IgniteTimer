@@ -1,8 +1,11 @@
+import { Button } from "./components/Button";
+
 export function App() {
 
   return (
     <>
-      Hello Word
+      <Button />
+      <Button variant="success"/>
     </>
   )
 }

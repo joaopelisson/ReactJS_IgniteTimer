@@ -3,6 +3,7 @@ import { CountdownContainer, FormContainer, HomeContainer, MinutesAmountInput, S
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
+import { useState } from "react";
 
 const newCycleFormValidationSchema = zod.object({
     task: zod.string().min(1, 'Informe a tarefa'),
@@ -10,22 +11,47 @@ const newCycleFormValidationSchema = zod.object({
     .min(5, 'O ciclo precisa ser no mínimo de 60 minutos.')
     .max(60, 'O ciclo precisa ser no máximo de 60 minutos.'),
 })
+interface Cycle{
+    id: string;
+    task: string;
+    minutesAmount: number;
+}
+type newCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
-    const { register, handleSubmit, watch } = useForm({
+    const { register, handleSubmit, watch, reset } = useForm<newCycleFormData>({
         resolver: zodResolver(newCycleFormValidationSchema),
+        defaultValues: {
+            task: '',
+            minutesAmount: 0,
+        }
     })
 
-    function handleCreateNewCycle(data: any){
-        event?.preventDefault()
-        console.log(data)
+    const [cycles, setCycles] =  useState<Cycle[]>([]);
+    const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
+
+    function handleCreateNewCycle(data: newCycleFormData){
+        const id = String(new Date().getTime());
+
+        const newCycle: Cycle = {
+            id,
+            minutesAmount: data.minutesAmount,
+            task: data.task
+        };
+
+        setCycles((state) => [...state, newCycle]);
+        setActiveCycleId(id);
+
+        reset();
     }
+    const activeCycle = cycles.find(cycle => cycle.id == activeCycleId);
+    console.log(activeCycle)
     const task = watch('task');
     const isSubmitDisabled = !task
 
     return (
         <HomeContainer>
-            <form onSubmit={handleSubmit(handleCreateNewCycle)} >
+            <form onSubmit={handleSubmit(handleCreateNewCycle)} action="">
                 <FormContainer>
                     <label htmlFor="task">Vou trabalhar em</label>
                     <TaskInput

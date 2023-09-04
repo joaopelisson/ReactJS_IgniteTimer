@@ -18,6 +18,7 @@ interface Cycle {
     minutesAmount: number;
     startDate: Date;
     interrupteDate?: Date;
+    finishedDate?: Date;
 }
 type newCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
@@ -52,16 +53,15 @@ export function Home() {
         reset();
     }
 
-    function handleInterruptCycle(){
-        const cycle = cycles.map(cycle => {
-            if(cycle.id === activeCycleId){
-                return {...cycle, interrupteDate: new Date()}
+    function handleInterruptCycle() {
+        setCycles(state => state.map(cycle => {
+            if (cycle.id === activeCycleId) {
+                return { ...cycle, interrupteDate: new Date() }
             }
-            else{
+            else {
                 return cycle
             }
-        });
-        setCycles(cycle);
+        }));
         setActiveCycleId(null);
     }
 
@@ -81,21 +81,37 @@ export function Home() {
     useEffect(() => {
         let interval: number;
 
-        if(activeCycle){
+        if (activeCycle) {
             interval = setInterval(() => {
-                
+
                 const differenceSeconds = differenceInSeconds(new Date(), activeCycle.startDate);
-                setAmountSecondsPassed(differenceSeconds)
+
+                if (differenceSeconds >= totalSeconds) {
+                    setCycles(state => state.map(cycle => {
+                        if (cycle.id === activeCycleId) {
+                            return { ...cycle, finishedDate: new Date() }
+                        }
+                        else {
+                            return cycle
+                        }
+                    }));
+
+                    setAmountSecondsPassed(totalSeconds);
+                    clearInterval(interval);
+                } else {
+                    setAmountSecondsPassed(differenceSeconds)
+                }
+
 
             }, 1000)
         }
         return () => {
             clearInterval(interval)
         }
-    }, [activeCycle]);
+    }, [activeCycle, totalSeconds, activeCycleId]);
 
     useEffect(() => {
-        if(activeCycle){
+        if (activeCycle) {
             document.title = `${minutes}:${seconds}`
         }
     }, [minutes, seconds]);
@@ -138,7 +154,7 @@ export function Home() {
                     <span>{seconds[0]}</span>
                     <span>{seconds[1]}</span>
                 </CountdownContainer>
-                { activeCycle ? (
+                {activeCycle ? (
                     <StopCountdownButton type="button" onClick={handleInterruptCycle}>
                         <HandPalm size={24} />
                         Interromper

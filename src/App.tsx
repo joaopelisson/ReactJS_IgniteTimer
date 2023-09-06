@@ -10,9 +10,9 @@ export function App() {
     <ThemeProvider theme={defaultTheme}>
       <GlobalStyle />
       <BrowserRouter>
-      <CyclesContextProvider>
-        <Router />
-      </CyclesContextProvider>
+        <CyclesContextProvider>
+          <Router />
+        </CyclesContextProvider>
       </BrowserRouter>
     </ThemeProvider>
   )
